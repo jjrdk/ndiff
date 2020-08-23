@@ -17,6 +17,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <WarningsNotAsErrors>618,1701</WarningsNotAsErrors>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
 </Project>

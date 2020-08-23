@@ -6,7 +6,7 @@
 
     public static class ObjectDiffExtensions
     {
-        public static DiffEntry[] Diff<T>(this T[] source, T[] other, IEqualityComparer<T> equalityComparer = null) where T : IEquatable<T>
+        public static DiffEntry[] Diff<T>(this T[] source, T[] other, IEqualityComparer<T>? equalityComparer = null) where T : IEquatable<T>
         {
             var h = new Dictionary<T, int>(source.Length + other.Length, equalityComparer);
             var diffData1 = new DiffData(DiffCodes(source, h));

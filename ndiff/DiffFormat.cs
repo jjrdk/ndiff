@@ -10,8 +10,8 @@
         public static string FormatDiffTextAsHtml(
             this string a,
             string b,
-            Func<string, string> addFormatter = null,
-            Func<string, string> removeFormatter = null,
+            Func<string, string>? addFormatter = null,
+            Func<string, string>? removeFormatter = null,
             bool trimSpace = false,
             bool ignoreSpace = false,
             bool ignoreCase = false)
@@ -24,8 +24,8 @@
             this string a,
             string b,
             DiffEntry[] diffset,
-            Func<string, string> addFormatter = null,
-            Func<string, string> removeFormatter = null)
+            Func<string, string>? addFormatter = null,
+            Func<string, string>? removeFormatter = null)
         {
             var addFormatting = addFormatter ?? Emphasize;
             var removeFormatting = removeFormatter ?? Delete;
