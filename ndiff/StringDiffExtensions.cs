@@ -1,16 +1,32 @@
-﻿namespace NDiff
+﻿// Adapted from the original code at http://www.mathertel.de/Diff/
+
+namespace NDiff
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
+    using System.Text.RegularExpressions;
 
-    public static class ObjectDiffExtensions
+    /// <summary>
+    /// Defines the string diff extensions.
+    /// </summary>
+    public static class StringDiffExtensions
     {
-        public static DiffEntry[] Diff<T>(this T[] source, T[] other, IEqualityComparer<T>? equalityComparer = null) where T : IEquatable<T>
+        private static readonly Regex Spaces = new Regex("\\s+", RegexOptions.Multiline | RegexOptions.Compiled);
+
+        /// <summary>
+        /// Performs a difference calculation on the passed texts
+        /// </summary>
+        /// <param name="textSource">The source text.</param>
+        /// <param name="textCompared">The compared text.</param>
+        /// <param name="trimSpace">Sets whether to trim whitespace.</param>
+        /// <param name="ignoreSpace">Sets whether to ignore whitespace.</param>
+        /// <param name="ignoreCase">Sets whether to ignore case.</param>
+        /// <returns>An array of <see cref="DiffEntry"/>/</returns>
+        public static DiffEntry[] DiffText(string textSource, string textCompared, bool trimSpace = false, bool ignoreSpace = false, bool ignoreCase = false)
         {
-            var h = new Dictionary<T, int>(source.Length + other.Length, equalityComparer);
-            var diffData1 = new DiffData(DiffCodes(source, h));
-            var diffData2 = new DiffData(DiffCodes(other, h));
+            var h = new Dictionary<string, int>(textSource.Length + textCompared.Length);
+            var diffData1 = new DiffData(DiffCodes(textSource, h, trimSpace, ignoreSpace, ignoreCase));
+            var diffData2 = new DiffData(DiffCodes(textCompared, h, trimSpace, ignoreSpace, ignoreCase));
             h.Clear();
             var num = diffData1.Length + diffData2.Length + 1;
             var downVector = new int[2 * num + 2];
@@ -21,50 +37,47 @@
             return CreateDiffs(diffData1, diffData2);
         }
 
-        public static IReadOnlyCollection<Compared<T>> Format<T>(this DiffEntry[] diffset, T[] source, T[] other)
+        /// <summary>
+        /// Performs a difference comparison of characters in two strings.
+        /// </summary>
+        /// <param name="a">The source text.</param>
+        /// <param name="b">The compared text.</param>
+        /// <returns>An array of <see cref="DiffEntry"/>/</returns>
+        public static DiffEntry[] DiffChars(string a, string b)
         {
-            var resultLines = new List<Compared<T>>();
-
-            for (var x = 0; x < diffset.Length; x++)
-            {
-                var item = AddUntouchedLines(diffset, x, source, resultLines);
-                AddDeletedLines(item, source, resultLines);
-                AddInsertedLines(item, other, resultLines);
-            }
-
-            return resultLines;
+            return DiffChars(a.ToCharArray(), b.ToCharArray());
         }
 
-        private static void AddInsertedLines<T>(
-            DiffEntry diffEntry,
-            T[] lines,
-            List<Compared<T>> resultLines)
+        /// <summary>
+        /// Performs a difference comparison of characters in two strings.
+        /// </summary>
+        /// <param name="charA">The source character array.</param>
+        /// <param name="charB">The compared character array.</param>
+        /// <returns>An array of <see cref="DiffEntry"/>/</returns>
+        public static DiffEntry[] DiffChars(char[] charA, char[] charB)
         {
-            var inserted = lines.Skip(diffEntry.StartB)
-                .Take(diffEntry.InsertedB)
-                .Select(x => new Compared<T>(x, ChangeAction.Added));
-
-            resultLines.AddRange(inserted);
+            var arrayA = new int[charA.Length];
+            var arrayB = new int[charB.Length];
+            Array.Copy(charA, arrayA, charA.Length);
+            Array.Copy(charB, arrayB, charB.Length);
+            return DiffInt(arrayA, arrayB);
         }
 
-        private static void AddDeletedLines<T>(
-            DiffEntry diffEntry,
-            T[] lines,
-            List<Compared<T>> resultLines)
+        /// <summary>
+        /// Performs a difference comparison of characters in two strings.
+        /// </summary>
+        /// <param name="arrayA">The source integer array.</param>
+        /// <param name="arrayB">The compared integer array.</param>
+        /// <returns>An array of <see cref="DiffEntry"/>/</returns>
+        public static DiffEntry[] DiffInt(int[] arrayA, int[] arrayB)
         {
-            var deleted = lines.Skip(diffEntry.StartA - 1).Take(diffEntry.DeletedA).Select(x => new Compared<T>(x, ChangeAction.Removed));
-            resultLines.AddRange(deleted);
-        }
-
-        private static DiffEntry AddUntouchedLines<T>(DiffEntry[] diff, int x, T[] lines, List<Compared<T>> resultLines)
-        {
-            var item = diff[x];
-            var offset = x == 0 ? 0 : (diff[x - 1].StartA + diff[x - 1].DeletedA);
-            var count = item.StartA - offset;
-            var untouched = lines.Skip(offset).Take(count).Select(a => new Compared<T>(a, ChangeAction.Unchanged));
-
-            resultLines.AddRange(untouched);
-            return item;
+            var dataA = new DiffData(arrayA);
+            var dataB = new DiffData(arrayB);
+            var num = dataA.Length + dataB.Length + 1;
+            var downVector = new int[2 * num + 2];
+            var upVector = new int[2 * num + 2];
+            Lcs(dataA, 0, dataA.Length, dataB, 0, dataB.Length, downVector, upVector);
+            return CreateDiffs(dataA, dataB);
         }
 
         private static void Optimize(DiffData data)
@@ -95,23 +108,39 @@
             }
         }
 
-        private static int[] DiffCodes<T>(T[] items, Dictionary<T, int> h) where T : IEquatable<T>
+        private static int[] DiffCodes(string aText, Dictionary<string, int> h, bool trimSpace, bool ignoreSpace, bool ignoreCase)
         {
             var count = h.Count;
-            var numArray = new int[items.Length];
-            for (var index1 = 0; index1 < items.Length; ++index1)
+            aText = aText.Replace("\r", "");
+            var strArray = aText.Split('\n');
+            var numArray = new int[strArray.Length];
+            for (var i = 0; i < strArray.Length; ++i)
             {
-                var index2 = items[index1];
+                var index2 = strArray[i];
+                if (trimSpace)
+                {
+                    index2 = index2.Trim();
+                }
+
+                if (ignoreSpace)
+                {
+                    index2 = Spaces.Replace(index2, " ");
+                }
+
+                if (ignoreCase)
+                {
+                    index2 = index2.ToLower();
+                }
 
                 if (!h.TryGetValue(index2, out var num))
                 {
                     ++count;
                     h[index2] = count;
-                    numArray[index1] = count;
+                    numArray[i] = count;
                 }
                 else
                 {
-                    numArray[index1] = num;
+                    numArray[i] = num;
                 }
             }
             return numArray;
@@ -259,18 +288,15 @@
 
         private readonly struct Smsrd
         {
-            private readonly int _x;
-            private readonly int _y;
-
             public Smsrd(int x, int y)
             {
-                _x = x;
-                _y = y;
+                X = x;
+                Y = y;
             }
 
-            public int X => _x;
+            internal int X { get; }
 
-            public int Y => _y;
+            internal int Y { get; }
         }
     }
 }

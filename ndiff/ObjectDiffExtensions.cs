@@ -1,20 +1,27 @@
-﻿// Adapted from the original code at http://www.mathertel.de/Diff/
-
-namespace NDiff
+﻿namespace NDiff
 {
     using System;
     using System.Collections.Generic;
-    using System.Text.RegularExpressions;
+    using System.Linq;
 
-    public static class StringDiffExtensions
+    /// <summary>
+    /// Defines the diff calculation extensions for objects.
+    /// </summary>
+    public static class ObjectDiffExtensions
     {
-        private static readonly Regex Spaces = new Regex("\\s+", RegexOptions.Multiline | RegexOptions.Compiled);
-
-        public static DiffEntry[] DiffText(string textA, string textB, bool trimSpace = false, bool ignoreSpace = false, bool ignoreCase = false)
+        /// <summary>
+        /// Calculates the diff set between two sequences.
+        /// </summary>
+        /// <typeparam name="T">The <see cref="Type"/> of objects being compared.</typeparam>
+        /// <param name="source">The source sequence.</param>
+        /// <param name="other">The different sequence.</param>
+        /// <param name="equalityComparer">The <see cref="IEqualityComparer{T}"/> to use.</param>
+        /// <returns>An array of <see cref="DiffEntry"/>.</returns>
+        public static DiffEntry[] Diff<T>(this T[] source, T[] other, IEqualityComparer<T>? equalityComparer = null) where T : IEquatable<T>
         {
-            var h = new Dictionary<string, int>(textA.Length + textB.Length);
-            var diffData1 = new DiffData(DiffCodes(textA, h, trimSpace, ignoreSpace, ignoreCase));
-            var diffData2 = new DiffData(DiffCodes(textB, h, trimSpace, ignoreSpace, ignoreCase));
+            var h = new Dictionary<T, int>(source.Length + other.Length, equalityComparer);
+            var diffData1 = new DiffData(DiffCodes(source, h));
+            var diffData2 = new DiffData(DiffCodes(other, h));
             h.Clear();
             var num = diffData1.Length + diffData2.Length + 1;
             var downVector = new int[2 * num + 2];
@@ -25,29 +32,58 @@ namespace NDiff
             return CreateDiffs(diffData1, diffData2);
         }
 
-        public static DiffEntry[] DiffChars(string a, string b)
+        /// <summary>
+        /// Formats the source sequence with the changes from the different sequence.
+        /// </summary>
+        /// <typeparam name="T">The <see cref="Type"/> of objects being compared.</typeparam>
+        /// <param name="diffset">The array of <see cref="DiffEntry"/> to apply.</param>
+        /// <param name="source">The source sequence.</param>
+        /// <param name="other">The different sequence.</param>
+        /// <returns>An <see cref="IReadOnlyCollection{T}"/> of <see cref="Compared{T}"/> items.</returns>
+        public static IReadOnlyCollection<Compared<T>> Format<T>(this DiffEntry[] diffset, T[] source, T[] other)
         {
-            return DiffChars(a.ToCharArray(), b.ToCharArray());
+            var resultLines = new List<Compared<T>>();
+
+            for (var x = 0; x < diffset.Length; x++)
+            {
+                var item = AddUntouchedLines(diffset, x, source, resultLines);
+                AddDeletedLines(item, source, resultLines);
+                AddInsertedLines(item, other, resultLines);
+            }
+
+            return resultLines;
         }
 
-        public static DiffEntry[] DiffChars(char[] charA, char[] charB)
+        private static void AddInsertedLines<T>(
+            DiffEntry diffEntry,
+            T[] lines,
+            List<Compared<T>> resultLines)
         {
-            var arrayA = new int[charA.Length];
-            var arrayB = new int[charB.Length];
-            Array.Copy(charA, arrayA, charA.Length);
-            Array.Copy(charB, arrayB, charB.Length);
-            return DiffInt(arrayA, arrayB);
+            var inserted = lines.Skip(diffEntry.StartCompared)
+                .Take(diffEntry.InsertedCompared)
+                .Select(x => new Compared<T>(x, ChangeAction.Added));
+
+            resultLines.AddRange(inserted);
         }
 
-        public static DiffEntry[] DiffInt(int[] arrayA, int[] arrayB)
+        private static void AddDeletedLines<T>(
+            DiffEntry diffEntry,
+            T[] lines,
+            List<Compared<T>> resultLines)
         {
-            var dataA = new DiffData(arrayA);
-            var dataB = new DiffData(arrayB);
-            var num = dataA.Length + dataB.Length + 1;
-            var downVector = new int[2 * num + 2];
-            var upVector = new int[2 * num + 2];
-            Lcs(dataA, 0, dataA.Length, dataB, 0, dataB.Length, downVector, upVector);
-            return CreateDiffs(dataA, dataB);
+            var deleted = lines.Skip(diffEntry.StartSource - 1).Take(diffEntry.DeletedSource).Select(x => new Compared<T>(x, ChangeAction.Removed));
+            resultLines.AddRange(deleted);
+        }
+
+        private static DiffEntry AddUntouchedLines<T>(DiffEntry[] diff, int x, T[] lines, List<Compared<T>> resultLines)
+        {
+            var item = diff[x];
+            var offset = x == 0 ? 0 : diff[x - 1].StartSource + diff[x - 1].DeletedSource;
+            var count = item.StartSource - offset;
+            var untouched = lines.Skip(offset).Take(count).Select(a => new Compared<T>(a, ChangeAction.Unchanged));
+
+            resultLines.AddRange(untouched);
+            return item;
         }
 
         private static void Optimize(DiffData data)
@@ -78,39 +114,23 @@ namespace NDiff
             }
         }
 
-        private static int[] DiffCodes(string aText, Dictionary<string, int> h, bool trimSpace, bool ignoreSpace, bool ignoreCase)
+        private static int[] DiffCodes<T>(T[] items, Dictionary<T, int> h) where T : IEquatable<T>
         {
             var count = h.Count;
-            aText = aText.Replace("\r", "");
-            var strArray = aText.Split('\n');
-            var numArray = new int[strArray.Length];
-            for (var i = 0; i < strArray.Length; ++i)
+            var numArray = new int[items.Length];
+            for (var index1 = 0; index1 < items.Length; ++index1)
             {
-                var index2 = strArray[i];
-                if (trimSpace)
-                {
-                    index2 = index2.Trim();
-                }
-
-                if (ignoreSpace)
-                {
-                    index2 = Spaces.Replace(index2, " ");
-                }
-
-                if (ignoreCase)
-                {
-                    index2 = index2.ToLower();
-                }
+                var index2 = items[index1];
 
                 if (!h.TryGetValue(index2, out var num))
                 {
                     ++count;
                     h[index2] = count;
-                    numArray[i] = count;
+                    numArray[index1] = count;
                 }
                 else
                 {
-                    numArray[i] = num;
+                    numArray[index1] = num;
                 }
             }
             return numArray;
@@ -267,8 +287,9 @@ namespace NDiff
                 _y = y;
             }
 
-            internal int X => _x;
-            internal int Y => _y;
+            public int X => _x;
+
+            public int Y => _y;
         }
     }
 }

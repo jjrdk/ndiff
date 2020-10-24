@@ -1,6 +1,5 @@
 ﻿namespace NDiff.Tests
 {
-    using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using Xunit;
 

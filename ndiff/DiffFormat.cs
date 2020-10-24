@@ -50,12 +50,12 @@
             Func<string, string> addFormatting,
             List<string> resultLines)
         {
-            if (diffEntry.InsertedB <= 0)
+            if (diffEntry.InsertedCompared <= 0)
             {
                 return;
             }
 
-            var inserted = text2Lines.Skip(diffEntry.StartB).Take(diffEntry.InsertedB).Select(addFormatting);
+            var inserted = text2Lines.Skip(diffEntry.StartCompared).Take(diffEntry.InsertedCompared).Select(addFormatting);
 
             resultLines.AddRange(inserted);
         }
@@ -66,16 +66,16 @@
             List<string> resultLines,
             Func<string, string> removeFormatting)
         {
-            var deleted = Enumerable.Range(0, diffEntry.DeletedA)
-                .Select(i => removeFormatting(text1Lines[i + diffEntry.StartA]));
+            var deleted = Enumerable.Range(0, diffEntry.DeletedSource)
+                .Select(i => removeFormatting(text1Lines[i + diffEntry.StartSource]));
             resultLines.AddRange(deleted);
         }
 
         private static DiffEntry AddUntouchedLines(DiffEntry[] diff, int x, List<string> text1Lines, List<string> resultLines)
         {
             var item = diff[x];
-            var offset = x == 0 ? 0 : (diff[x - 1].StartA + diff[x - 1].DeletedA);
-            var count = item.StartA - offset;
+            var offset = x == 0 ? 0 : (diff[x - 1].StartSource + diff[x - 1].DeletedSource);
+            var count = item.StartSource - offset;
             var untouched = text1Lines.GetRange(offset, count);
             resultLines.AddRange(untouched);
             return item;
@@ -88,26 +88,26 @@
             var index1 = 0;
             foreach (var obj in objArray)
             {
-                for (; index1 < obj.StartB && index1 < b.Length; ++index1)
+                for (; index1 < obj.StartCompared && index1 < b.Length; ++index1)
                 {
                     stringBuilder.Append(b[index1]);
                 }
 
-                if (obj.DeletedA > 0)
+                if (obj.DeletedSource > 0)
                 {
                     stringBuilder.Append("<del>");
-                    for (var index2 = 0; index2 < obj.DeletedA; ++index2)
+                    for (var index2 = 0; index2 < obj.DeletedSource; ++index2)
                     {
-                        stringBuilder.Append(a[obj.StartA + index2]);
+                        stringBuilder.Append(a[obj.StartSource + index2]);
                     }
 
                     stringBuilder.Append("</del>");
                 }
 
-                if (index1 < obj.StartB + obj.InsertedB)
+                if (index1 < obj.StartCompared + obj.InsertedCompared)
                 {
                     stringBuilder.Append("<em>");
-                    for (; index1 < obj.StartB + obj.InsertedB; ++index1)
+                    for (; index1 < obj.StartCompared + obj.InsertedCompared; ++index1)
                     {
                         stringBuilder.Append(b[index1]);
                     }
