@@ -1,5 +1,6 @@
 ﻿namespace NDiff.Tests
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Xunit;
 
@@ -49,6 +50,25 @@
             Assert.Equal(
                 new[] { ChangeAction.Unchanged, ChangeAction.Unchanged, ChangeAction.Removed, ChangeAction.Added },
                 formattedCollection);
+        }
+
+        [Theory]
+        [MemberData(nameof(DeltaSequences))]
+        public void Deltas(int[] sequence1, int[] sequence2)
+        {
+            var deltas = sequence1.CreateDelta(sequence2);
+            var applied = sequence1.ApplyDeltas(deltas);
+
+            Assert.Equal(sequence2, applied);
+        }
+
+        public static IEnumerable<object[]> DeltaSequences()
+        {
+            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
+            yield return new object[] { new[] { 3, 5, 6, 8, 9 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
+            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9, 10 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
+            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9, 10 }, new[] { 1, 2, 4, 6, 7, 8, 9, 11 } };
+            yield return new object[] { new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, new[] { 6, 7, 8, 9, 11 } };
         }
     }
 }

@@ -26,6 +26,12 @@
             return false;
         }
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Text + ", " + Value;
+        }
+
         public override int GetHashCode()
         {
             unchecked

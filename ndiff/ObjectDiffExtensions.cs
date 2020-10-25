@@ -17,9 +17,9 @@
         /// <param name="other">The different sequence.</param>
         /// <param name="equalityComparer">The <see cref="IEqualityComparer{T}"/> to use.</param>
         /// <returns>An array of <see cref="DiffEntry"/>.</returns>
-        public static DiffEntry[] Diff<T>(this T[] source, T[] other, IEqualityComparer<T>? equalityComparer = null) where T : IEquatable<T>
+        public static DiffEntry[] Diff<T>(this IReadOnlyList<T> source, IReadOnlyList<T> other, IEqualityComparer<T>? equalityComparer = null) where T : IEquatable<T>
         {
-            var h = new Dictionary<T, int>(source.Length + other.Length, equalityComparer);
+            var h = new Dictionary<T, int>(source.Count + other.Count, equalityComparer);
             var diffData1 = new DiffData(DiffCodes(source, h));
             var diffData2 = new DiffData(DiffCodes(other, h));
             h.Clear();
@@ -52,6 +52,29 @@
             }
 
             return resultLines;
+        }
+
+        public static Delta<T>[] CreateDelta<T>(this IReadOnlyList<T> source, IReadOnlyList<T> other, IEqualityComparer<T>? equalityComparer = null)
+            where T : IEquatable<T>
+        {
+            var diff = Diff(source, other, equalityComparer);
+            return diff
+                .Select(d => new Delta<T>(d, other.Skip(d.StartCompared).Take(d.InsertedCompared).ToArray()))
+                .ToArray();
+        }
+
+        public static T[] ApplyDeltas<T>(this IReadOnlyCollection<T> source, params Delta<T>[] diff)
+        {
+            var position = 0;
+            var output = Enumerable.Empty<T>();
+            foreach (var item in diff)
+            {
+                output = output.Concat(source.Skip(position).Take(item.Diff.StartSource - position).Concat(item.Added));
+                position = item.Diff.StartSource + item.Diff.DeletedSource;
+            }
+            output = output.Concat(source.Skip(position));
+
+            return output.ToArray();
         }
 
         private static void AddInsertedLines<T>(
@@ -114,11 +137,11 @@
             }
         }
 
-        private static int[] DiffCodes<T>(T[] items, Dictionary<T, int> h) where T : IEquatable<T>
+        private static int[] DiffCodes<T>(IReadOnlyList<T> items, Dictionary<T, int> h) where T : IEquatable<T>
         {
             var count = h.Count;
-            var numArray = new int[items.Length];
-            for (var index1 = 0; index1 < items.Length; ++index1)
+            var numArray = new int[items.Count];
+            for (var index1 = 0; index1 < items.Count; ++index1)
             {
                 var index2 = items[index1];
 
