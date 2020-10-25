@@ -45,7 +45,7 @@
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return new { Change, Item }.GetHashCode();
+            return new {Change, Item}.GetHashCode();
         }
     }
 }

@@ -48,7 +48,7 @@
             var formattedCollection = diff.Format(sequence1, sequence2).Select(x => x.Change);
 
             Assert.Equal(
-                new[] { ChangeAction.Unchanged, ChangeAction.Unchanged, ChangeAction.Removed, ChangeAction.Added },
+                new[] {ChangeAction.Unchanged, ChangeAction.Unchanged, ChangeAction.Removed, ChangeAction.Added},
                 formattedCollection);
         }
 
@@ -64,11 +64,11 @@
 
         public static IEnumerable<object[]> DeltaSequences()
         {
-            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
-            yield return new object[] { new[] { 3, 5, 6, 8, 9 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
-            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9, 10 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
-            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9, 10 }, new[] { 1, 2, 4, 6, 7, 8, 9, 11 } };
-            yield return new object[] { new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, new[] { 6, 7, 8, 9, 11 } };
+            yield return new object[] {new[] {1, 2, 3, 5, 6, 8, 9}, new[] {1, 2, 4, 6, 7, 8, 9}};
+            yield return new object[] {new[] {3, 5, 6, 8, 9}, new[] {1, 2, 4, 6, 7, 8, 9}};
+            yield return new object[] {new[] {1, 2, 3, 5, 6, 8, 9, 10}, new[] {1, 2, 4, 6, 7, 8, 9}};
+            yield return new object[] {new[] {1, 2, 3, 5, 6, 8, 9, 10}, new[] {1, 2, 4, 6, 7, 8, 9, 11}};
+            yield return new object[] {new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, new[] {6, 7, 8, 9, 11}};
         }
     }
 }

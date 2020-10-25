@@ -22,7 +22,10 @@
             StartCompared = startCompared;
             DeletedSource = deletedSource;
             InsertedCompared = insertedCompared;
-            _hash = new { StartA = StartSource, StartB = StartCompared, DeletedA = DeletedSource, InsertedB = InsertedCompared }.GetHashCode();
+            _hash = new
+            {
+                StartA = StartSource, StartB = StartCompared, DeletedA = DeletedSource, InsertedB = InsertedCompared
+            }.GetHashCode();
         }
 
         /// <summary>
@@ -48,7 +51,10 @@
         /// <inheritdoc />
         public bool Equals(DiffEntry other)
         {
-            return StartSource == other.StartSource && StartCompared == other.StartCompared && DeletedSource == other.DeletedSource && InsertedCompared == other.InsertedCompared;
+            return StartSource == other.StartSource
+                   && StartCompared == other.StartCompared
+                   && DeletedSource == other.DeletedSource
+                   && InsertedCompared == other.InsertedCompared;
         }
 
         /// <inheritdoc />

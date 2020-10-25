@@ -22,7 +22,12 @@ namespace NDiff
         /// <param name="ignoreSpace">Sets whether to ignore whitespace.</param>
         /// <param name="ignoreCase">Sets whether to ignore case.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
-        public static DiffEntry[] DiffText(string textSource, string textCompared, bool trimSpace = false, bool ignoreSpace = false, bool ignoreCase = false)
+        public static DiffEntry[] DiffText(
+            string textSource,
+            string textCompared,
+            bool trimSpace = false,
+            bool ignoreSpace = false,
+            bool ignoreCase = false)
         {
             var h = new Dictionary<string, int>(textSource.Length + textCompared.Length);
             var diffData1 = new DiffData(DiffCodes(textSource, h, trimSpace, ignoreSpace, ignoreCase));
@@ -108,7 +113,12 @@ namespace NDiff
             }
         }
 
-        private static int[] DiffCodes(string aText, Dictionary<string, int> h, bool trimSpace, bool ignoreSpace, bool ignoreCase)
+        private static int[] DiffCodes(
+            string aText,
+            Dictionary<string, int> h,
+            bool trimSpace,
+            bool ignoreSpace,
+            bool ignoreCase)
         {
             var count = h.Count;
             aText = aText.Replace("\r", "");
@@ -143,15 +153,24 @@ namespace NDiff
                     numArray[i] = num;
                 }
             }
+
             return numArray;
         }
 
-        private static Smsrd Sms(DiffData dataA, int lowerA, int upperA, DiffData dataB, int lowerB, int upperB, int[] downVector, int[] upVector)
+        private static Smsrd Sms(
+            DiffData dataA,
+            int lowerA,
+            int upperA,
+            DiffData dataB,
+            int lowerB,
+            int upperB,
+            int[] downVector,
+            int[] upVector)
         {
             var num1 = dataA.Length + dataB.Length + 1;
             var num2 = lowerA - lowerB;
             var num3 = upperA - upperB;
-            var flag = (uint)(upperA - lowerA - (upperB - lowerB) & 1) > 0U;
+            var flag = (uint) (upperA - lowerA - (upperB - lowerB) & 1) > 0U;
             var num4 = num1 - num2;
             var num5 = num1 - num3;
             var num6 = (upperA - lowerA + upperB - lowerB) / 2 + 1;
@@ -175,18 +194,25 @@ namespace NDiff
                             index2 = downVector[num4 + num7 + 1];
                         }
                     }
-                    for (var index3 = index2 - num7; index2 < upperA && index3 < upperB && dataA.Data[index2] == dataB.Data[index3]; ++index3)
+
+                    for (var index3 = index2 - num7;
+                        index2 < upperA && index3 < upperB && dataA.Data[index2] == dataB.Data[index3];
+                        ++index3)
                     {
                         ++index2;
                     }
 
                     downVector[num4 + num7] = index2;
-                    if (flag && num3 - index1 < num7 && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
+                    if (flag
+                        && num3 - index1 < num7
+                        && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
                     {
                         return new Smsrd(downVector[num4 + num7], downVector[num4 + num7] - num7);
                     }
+
                     num7 += 2;
                 }
+
                 var num8 = num3 - index1;
                 while (num8 <= num3 + index1)
                 {
@@ -203,23 +229,38 @@ namespace NDiff
                             num9 = upVector[num5 + num8 - 1];
                         }
                     }
-                    for (var index2 = num9 - num8; num9 > lowerA && index2 > lowerB && dataA.Data[num9 - 1] == dataB.Data[index2 - 1]; --index2)
+
+                    for (var index2 = num9 - num8;
+                        num9 > lowerA && index2 > lowerB && dataA.Data[num9 - 1] == dataB.Data[index2 - 1];
+                        --index2)
                     {
                         --num9;
                     }
 
                     upVector[num5 + num8] = num9;
-                    if (!flag && num2 - index1 <= num8 && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
+                    if (!flag
+                        && num2 - index1 <= num8
+                        && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
                     {
                         return new Smsrd(downVector[num4 + num8], downVector[num4 + num8] - num8);
                     }
+
                     num8 += 2;
                 }
             }
+
             throw new Exception("the algorithm should never come here.");
         }
 
-        private static void Lcs(DiffData dataA, int lowerA, int upperA, DiffData dataB, int lowerB, int upperB, int[] downVector, int[] upVector)
+        private static void Lcs(
+            DiffData dataA,
+            int lowerA,
+            int upperA,
+            DiffData dataB,
+            int lowerB,
+            int upperB,
+            int[] downVector,
+            int[] upVector)
         {
             for (; lowerA < upperA && lowerB < upperB && dataA.Data[lowerA] == dataB.Data[lowerB]; ++lowerB)
             {
@@ -230,6 +271,7 @@ namespace NDiff
             {
                 --upperA;
             }
+
             if (lowerA == upperA)
             {
                 while (lowerB < upperB)
@@ -259,7 +301,9 @@ namespace NDiff
             var index2 = 0;
             while (index1 < dataA.Length || index2 < dataB.Length)
             {
-                if (index1 < dataA.Length && !dataA.Modified[index1] && (index2 < dataB.Length && !dataB.Modified[index2]))
+                if (index1 < dataA.Length
+                    && !dataA.Modified[index1]
+                    && (index2 < dataB.Length && !dataB.Modified[index2]))
                 {
                     ++index1;
                     ++index2;
@@ -272,10 +316,12 @@ namespace NDiff
                     {
                         ++index1;
                     }
+
                     while (index2 < dataB.Length && (index1 >= dataA.Length || dataB.Modified[index2]))
                     {
                         ++index2;
                     }
+
                     if (num1 < index1 || num2 < index2)
                     {
                         objList.Add(new DiffEntry(num1, num2, index1 - num1, index2 - num2));

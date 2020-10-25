@@ -23,6 +23,7 @@
             {
                 return Equals(ti);
             }
+
             return false;
         }
 
@@ -34,10 +35,7 @@
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return ((Text != null ? Text.GetHashCode() : 0) * 397) ^ Value;
-            }
+            return ToString().GetHashCode();
         }
     }
 }

@@ -55,7 +55,9 @@
                 return;
             }
 
-            var inserted = text2Lines.Skip(diffEntry.StartCompared).Take(diffEntry.InsertedCompared).Select(addFormatting);
+            var inserted = text2Lines.Skip(diffEntry.StartCompared)
+                .Take(diffEntry.InsertedCompared)
+                .Select(addFormatting);
 
             resultLines.AddRange(inserted);
         }
@@ -71,7 +73,11 @@
             resultLines.AddRange(deleted);
         }
 
-        private static DiffEntry AddUntouchedLines(DiffEntry[] diff, int x, List<string> text1Lines, List<string> resultLines)
+        private static DiffEntry AddUntouchedLines(
+            DiffEntry[] diff,
+            int x,
+            List<string> text1Lines,
+            List<string> resultLines)
         {
             var item = diff[x];
             var offset = x == 0 ? 0 : (diff[x - 1].StartSource + diff[x - 1].DeletedSource);

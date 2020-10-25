@@ -17,7 +17,11 @@
         /// <param name="other">The different sequence.</param>
         /// <param name="equalityComparer">The <see cref="IEqualityComparer{T}"/> to use.</param>
         /// <returns>An array of <see cref="DiffEntry"/>.</returns>
-        public static DiffEntry[] Diff<T>(this IReadOnlyList<T> source, IReadOnlyList<T> other, IEqualityComparer<T>? equalityComparer = null) where T : IEquatable<T>
+        public static DiffEntry[] Diff<T>(
+            this IReadOnlyList<T> source,
+            IReadOnlyList<T> other,
+            IEqualityComparer<T>? equalityComparer = null)
+            where T : IEquatable<T>
         {
             var h = new Dictionary<T, int>(source.Count + other.Count, equalityComparer);
             var diffData1 = new DiffData(DiffCodes(source, h));
@@ -36,17 +40,17 @@
         /// Formats the source sequence with the changes from the different sequence.
         /// </summary>
         /// <typeparam name="T">The <see cref="Type"/> of objects being compared.</typeparam>
-        /// <param name="diffset">The array of <see cref="DiffEntry"/> to apply.</param>
+        /// <param name="diffs">The array of <see cref="DiffEntry"/> to apply.</param>
         /// <param name="source">The source sequence.</param>
         /// <param name="other">The different sequence.</param>
         /// <returns>An <see cref="IReadOnlyCollection{T}"/> of <see cref="Compared{T}"/> items.</returns>
-        public static IReadOnlyCollection<Compared<T>> Format<T>(this DiffEntry[] diffset, T[] source, T[] other)
+        public static IReadOnlyCollection<Compared<T>> Format<T>(this DiffEntry[] diffs, T[] source, T[] other)
         {
             var resultLines = new List<Compared<T>>();
 
-            for (var x = 0; x < diffset.Length; x++)
+            for (var x = 0; x < diffs.Length; x++)
             {
-                var item = AddUntouchedLines(diffset, x, source, resultLines);
+                var item = AddUntouchedLines(diffs, x, source, resultLines);
                 AddDeletedLines(item, source, resultLines);
                 AddInsertedLines(item, other, resultLines);
             }
@@ -54,11 +58,13 @@
             return resultLines;
         }
 
-        public static Delta<T>[] CreateDelta<T>(this IReadOnlyList<T> source, IReadOnlyList<T> other, IEqualityComparer<T>? equalityComparer = null)
+        public static Delta<T>[] CreateDelta<T>(
+            this IReadOnlyList<T> source,
+            IReadOnlyList<T> other,
+            IEqualityComparer<T>? equalityComparer = null)
             where T : IEquatable<T>
         {
-            var diff = Diff(source, other, equalityComparer);
-            return diff
+            return source.Diff(other, equalityComparer)
                 .Select(d => new Delta<T>(d, other.Skip(d.StartCompared).Take(d.InsertedCompared).ToArray()))
                 .ToArray();
         }
@@ -72,15 +78,13 @@
                 output = output.Concat(source.Skip(position).Take(item.Diff.StartSource - position).Concat(item.Added));
                 position = item.Diff.StartSource + item.Diff.DeletedSource;
             }
+
             output = output.Concat(source.Skip(position));
 
             return output.ToArray();
         }
 
-        private static void AddInsertedLines<T>(
-            DiffEntry diffEntry,
-            T[] lines,
-            List<Compared<T>> resultLines)
+        private static void AddInsertedLines<T>(DiffEntry diffEntry, T[] lines, List<Compared<T>> resultLines)
         {
             var inserted = lines.Skip(diffEntry.StartCompared)
                 .Take(diffEntry.InsertedCompared)
@@ -89,12 +93,11 @@
             resultLines.AddRange(inserted);
         }
 
-        private static void AddDeletedLines<T>(
-            DiffEntry diffEntry,
-            T[] lines,
-            List<Compared<T>> resultLines)
+        private static void AddDeletedLines<T>(DiffEntry diffEntry, T[] lines, List<Compared<T>> resultLines)
         {
-            var deleted = lines.Skip(diffEntry.StartSource - 1).Take(diffEntry.DeletedSource).Select(x => new Compared<T>(x, ChangeAction.Removed));
+            var deleted = lines.Skip(diffEntry.StartSource - 1)
+                .Take(diffEntry.DeletedSource)
+                .Select(x => new Compared<T>(x, ChangeAction.Removed));
             resultLines.AddRange(deleted);
         }
 
@@ -137,7 +140,8 @@
             }
         }
 
-        private static int[] DiffCodes<T>(IReadOnlyList<T> items, Dictionary<T, int> h) where T : IEquatable<T>
+        private static int[] DiffCodes<T>(IReadOnlyList<T> items, Dictionary<T, int> h)
+            where T : IEquatable<T>
         {
             var count = h.Count;
             var numArray = new int[items.Count];
@@ -156,15 +160,24 @@
                     numArray[index1] = num;
                 }
             }
+
             return numArray;
         }
 
-        private static Smsrd Sms(DiffData dataA, int lowerA, int upperA, DiffData dataB, int lowerB, int upperB, int[] downVector, int[] upVector)
+        private static Smsrd Sms(
+            DiffData dataA,
+            int lowerA,
+            int upperA,
+            DiffData dataB,
+            int lowerB,
+            int upperB,
+            int[] downVector,
+            int[] upVector)
         {
             var num1 = dataA.Length + dataB.Length + 1;
             var num2 = lowerA - lowerB;
             var num3 = upperA - upperB;
-            var flag = (uint)(upperA - lowerA - (upperB - lowerB) & 1) > 0U;
+            var flag = (uint) (upperA - lowerA - (upperB - lowerB) & 1) > 0U;
             var num4 = num1 - num2;
             var num5 = num1 - num3;
             var num6 = (upperA - lowerA + upperB - lowerB) / 2 + 1;
@@ -188,18 +201,25 @@
                             index2 = downVector[num4 + num7 + 1];
                         }
                     }
-                    for (var index3 = index2 - num7; index2 < upperA && index3 < upperB && dataA.Data[index2] == dataB.Data[index3]; ++index3)
+
+                    for (var index3 = index2 - num7;
+                        index2 < upperA && index3 < upperB && dataA.Data[index2] == dataB.Data[index3];
+                        ++index3)
                     {
                         ++index2;
                     }
 
                     downVector[num4 + num7] = index2;
-                    if (flag && num3 - index1 < num7 && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
+                    if (flag
+                        && num3 - index1 < num7
+                        && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
                     {
                         return new Smsrd(downVector[num4 + num7], downVector[num4 + num7] - num7);
                     }
+
                     num7 += 2;
                 }
+
                 var num8 = num3 - index1;
                 while (num8 <= num3 + index1)
                 {
@@ -216,23 +236,38 @@
                             num9 = upVector[num5 + num8 - 1];
                         }
                     }
-                    for (var index2 = num9 - num8; num9 > lowerA && index2 > lowerB && dataA.Data[num9 - 1] == dataB.Data[index2 - 1]; --index2)
+
+                    for (var index2 = num9 - num8;
+                        num9 > lowerA && index2 > lowerB && dataA.Data[num9 - 1] == dataB.Data[index2 - 1];
+                        --index2)
                     {
                         --num9;
                     }
 
                     upVector[num5 + num8] = num9;
-                    if (!flag && num2 - index1 <= num8 && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
+                    if (!flag
+                        && num2 - index1 <= num8
+                        && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
                     {
                         return new Smsrd(downVector[num4 + num8], downVector[num4 + num8] - num8);
                     }
+
                     num8 += 2;
                 }
             }
+
             throw new Exception("the algorithm should never come here.");
         }
 
-        private static void Lcs(DiffData dataA, int lowerA, int upperA, DiffData dataB, int lowerB, int upperB, int[] downVector, int[] upVector)
+        private static void Lcs(
+            DiffData dataA,
+            int lowerA,
+            int upperA,
+            DiffData dataB,
+            int lowerB,
+            int upperB,
+            int[] downVector,
+            int[] upVector)
         {
             for (; lowerA < upperA && lowerB < upperB && dataA.Data[lowerA] == dataB.Data[lowerB]; ++lowerB)
             {
@@ -243,6 +278,7 @@
             {
                 --upperA;
             }
+
             if (lowerA == upperA)
             {
                 while (lowerB < upperB)
@@ -272,7 +308,9 @@
             var index2 = 0;
             while (index1 < dataA.Length || index2 < dataB.Length)
             {
-                if (index1 < dataA.Length && !dataA.Modified[index1] && (index2 < dataB.Length && !dataB.Modified[index2]))
+                if (index1 < dataA.Length
+                    && !dataA.Modified[index1]
+                    && (index2 < dataB.Length && !dataB.Modified[index2]))
                 {
                     ++index1;
                     ++index2;
@@ -285,10 +323,12 @@
                     {
                         ++index1;
                     }
+
                     while (index2 < dataB.Length && (index1 >= dataA.Length || dataB.Modified[index2]))
                     {
                         ++index2;
                     }
+
                     if (num1 < index1 || num2 < index2)
                     {
                         objList.Add(new DiffEntry(num1, num2, index1 - num1, index2 - num2));
@@ -301,18 +341,15 @@
 
         private readonly struct Smsrd
         {
-            private readonly int _x;
-            private readonly int _y;
-
             public Smsrd(int x, int y)
             {
-                _x = x;
-                _y = y;
+                X = x;
+                Y = y;
             }
 
-            public int X => _x;
+            public int X { get; }
 
-            public int Y => _y;
+            public int Y { get; }
         }
     }
 }
