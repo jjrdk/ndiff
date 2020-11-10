@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net5.0</TargetFrameworks>
     <RootNamespace>NDiff</RootNamespace>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <Authors>Jacob Reimers</Authors>
     <Company>Reimers.dk</Company>
     <Product>NDiff</Product>
@@ -18,8 +18,8 @@
     <WarningsAsErrors />
     <WarningsNotAsErrors>618,1701</WarningsNotAsErrors>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <FileVersion>1.1.0</FileVersion>
   </PropertyGroup>
 
 </Project>
