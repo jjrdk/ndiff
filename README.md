@@ -1,16 +1,26 @@
 # NDiff
 
+A sequence comparison library for any object.
+
 ## Description
 
 A C\# implementation of the Longest Common Subsequence algorithm for both text and objects.
 
 The code is adapted from the original code at [Mathertel](http://www.mathertel.de/Diff/).
 
+The original code provided an algorithm implementation for strings. NDiff extends this to handle all types. If the type being compared does not implement ```IEquatable<T>```, then an ```IEqualityComparer<T>``` should be provided.
+
 ## Runtime Environment
 
-The project is built against under .NET Standard 1.3 and 2.0.
+The project is built against under .NET Standard 2.0, 2.1 and .NET 5.0.
 
 ## Using the Library
+
+Comparison operations are implemented as extension methods on either strings or enumerables (```IEnumerable<T>```). Calling the ```Diff``` extension method will produce a set of ```DiffEntry``` objects describing all differences between the compared sequences.
+
+Using the ```Format``` extension method will provide a list of ```Compared<T>```. This list gives all items in the source list and other list and marks them with the ```ChangeAction``` for that item. This lets you generate a list of deletions and insertions for any item type.
+
+Similar formatting options are provided for strings, using the ```DiffFormat``` extension methods.
 
 For the moment, please refer to the tests for usage examples. There are tests for both text and object sequences.
 

@@ -9,18 +9,8 @@
         [Fact]
         public void ShortSequenceAnalysis()
         {
-            var sequence1 = new[]
-            {
-                new TestItem {Text = "Item 1", Value = 1},
-                new TestItem {Text = "Item 2", Value = 2},
-                new TestItem {Text = "Item 3", Value = 3},
-            };
-            var sequence2 = new[]
-            {
-                new TestItem {Text = "Item 1", Value = 1},
-                new TestItem {Text = "Item 2", Value = 2},
-                new TestItem {Text = "Item 4", Value = 4},
-            };
+            var sequence1 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3),};
+            var sequence2 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4),};
 
             var diff = sequence1.Diff(sequence2);
 
@@ -31,18 +21,8 @@
         [Fact]
         public void Formatting()
         {
-            var sequence1 = new[]
-            {
-                new TestItem {Text = "Item 1", Value = 1},
-                new TestItem {Text = "Item 2", Value = 2},
-                new TestItem {Text = "Item 3", Value = 3},
-            };
-            var sequence2 = new[]
-            {
-                new TestItem {Text = "Item 1", Value = 1},
-                new TestItem {Text = "Item 2", Value = 2},
-                new TestItem {Text = "Item 4", Value = 4},
-            };
+            var sequence1 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3),};
+            var sequence2 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4),};
 
             var diff = sequence1.Diff(sequence2);
             var formattedCollection = diff.Format(sequence1, sequence2).Select(x => x.Change);

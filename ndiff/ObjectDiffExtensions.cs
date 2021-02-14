@@ -10,7 +10,10 @@
     public static class ObjectDiffExtensions
     {
         /// <summary>
+        /// <para>
         /// Calculates the diff set between two sequences.
+        /// </para>
+        /// <para>If the type of object being compared does not implement <see cref="IEquatable{T}"/>, then an <see cref="IEqualityComparer{T}"/> should be provided to avoid comparing by reference.</para>
         /// </summary>
         /// <typeparam name="T">The <see cref="Type"/> of objects being compared.</typeparam>
         /// <param name="source">The source sequence.</param>
@@ -21,7 +24,6 @@
             this IReadOnlyList<T> source,
             IReadOnlyList<T> other,
             IEqualityComparer<T>? equalityComparer = null)
-            where T : IEquatable<T>
         {
             var h = new Dictionary<T, int>(source.Count + other.Count, equalityComparer);
             var diffData1 = new DiffData(DiffCodes(source, h));
@@ -141,7 +143,6 @@
         }
 
         private static int[] DiffCodes<T>(IReadOnlyList<T> items, Dictionary<T, int> h)
-            where T : IEquatable<T>
         {
             var count = h.Count;
             var numArray = new int[items.Count];

@@ -1,6 +1,6 @@
 ﻿namespace NDiff
 {
-    internal class DiffData
+    internal struct DiffData
     {
         internal DiffData(int[] data)
         {
