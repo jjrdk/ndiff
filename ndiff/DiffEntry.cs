@@ -24,7 +24,10 @@
             InsertedCompared = insertedCompared;
             _hash = new
             {
-                StartA = StartSource, StartB = StartCompared, DeletedA = DeletedSource, InsertedB = InsertedCompared
+                StartA = StartSource,
+                StartB = StartCompared,
+                DeletedA = DeletedSource,
+                InsertedB = InsertedCompared
             }.GetHashCode();
         }
 
@@ -58,9 +61,19 @@
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is DiffEntry other && Equals(other);
+        }
+
+        public static bool operator ==(DiffEntry instance, DiffEntry other)
+        {
+            return instance.Equals(other);
+        }
+
+        public static bool operator !=(DiffEntry instance, DiffEntry other)
+        {
+            return !instance.Equals(other);
         }
 
         /// <inheritdoc />

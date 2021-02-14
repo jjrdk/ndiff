@@ -37,15 +37,33 @@
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Compared<T> other && Equals(other);
+        }
+
+        public static bool operator ==(Compared<T>? instance, Compared<T>? other)
+        {
+            if (instance is null || other is null)
+            {
+                return false;
+            }
+            return instance.Equals(other);
+        }
+
+        public static bool operator !=(Compared<T>? instance, Compared<T>? other)
+        {
+            if (instance is null || other is null)
+            {
+                return true;
+            }
+            return !instance.Equals(other);
         }
 
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return new {Change, Item}.GetHashCode();
+            return new { Change, Item }.GetHashCode();
         }
     }
 }

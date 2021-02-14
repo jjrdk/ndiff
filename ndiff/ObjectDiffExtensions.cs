@@ -23,7 +23,7 @@
         public static DiffEntry[] Diff<T>(
             this IReadOnlyList<T> source,
             IReadOnlyList<T> other,
-            IEqualityComparer<T>? equalityComparer = null)
+            IEqualityComparer<T>? equalityComparer = null) where T : notnull
         {
             var h = new Dictionary<T, int>(source.Count + other.Count, equalityComparer);
             var diffData1 = new DiffData(DiffCodes(source, h));
@@ -142,7 +142,7 @@
             }
         }
 
-        private static int[] DiffCodes<T>(IReadOnlyList<T> items, Dictionary<T, int> h)
+        private static int[] DiffCodes<T>(IReadOnlyList<T> items, Dictionary<T, int> h) where T : notnull
         {
             var count = h.Count;
             var numArray = new int[items.Count];
@@ -178,7 +178,7 @@
             var num1 = dataA.Length + dataB.Length + 1;
             var num2 = lowerA - lowerB;
             var num3 = upperA - upperB;
-            var flag = (uint) (upperA - lowerA - (upperB - lowerB) & 1) > 0U;
+            var flag = (uint)(upperA - lowerA - (upperB - lowerB) & 1) > 0U;
             var num4 = num1 - num2;
             var num5 = num1 - num3;
             var num6 = (upperA - lowerA + upperB - lowerB) / 2 + 1;
