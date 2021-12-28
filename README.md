@@ -12,7 +12,7 @@ The original code provided an algorithm implementation for strings. NDiff extend
 
 ## Runtime Environment
 
-The project is built against under .NET Standard 2.0, 2.1 and .NET 5.0.
+The project is built against under .NET Standard 2.0, 2.1 and .NET 6.0.
 
 ## Using the Library
 
