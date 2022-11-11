@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0</TargetFrameworks>
     <RootNamespace>NDiff</RootNamespace>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Authors>Jacob Reimers</Authors>
     <Company>Reimers.dk</Company>
     <Product>NDiff</Product>
-    <Copyright>Reimers.dk © 2019-2021</Copyright>
+    <Copyright>Reimers.dk © 2019-2022</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/jjrdk/ndiff</PackageProjectUrl>
