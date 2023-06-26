@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <RootNamespace>NDiff</RootNamespace>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
     <Authors>Jacob Reimers</Authors>
     <Company>Reimers.dk</Company>
     <Product>NDiff</Product>
-    <Copyright>Reimers.dk © 2019-2022</Copyright>
+    <Copyright>Reimers.dk © 2019-2023</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/jjrdk/ndiff</PackageProjectUrl>
