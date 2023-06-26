@@ -1,8 +1,10 @@
 ﻿namespace NDiff
 {
-    internal struct DiffData
+    using System;
+
+    internal ref struct DiffData
     {
-        internal DiffData(int[] data)
+        internal DiffData(Span<int> data)
         {
             Data = data;
             Length = data.Length;
@@ -11,8 +13,8 @@
 
         internal int Length { get; }
 
-        internal int[] Data { get; }
+        internal Span<int> Data { get; }
 
-        internal bool[] Modified { get; }
+        internal Span<bool> Modified { get; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Adapted from the original code at http://www.mathertel.de/Diff/
 
+// ReSharper disable CognitiveComplexity
 namespace NDiff
 {
     using System;
@@ -45,26 +46,22 @@ namespace NDiff
         /// <summary>
         /// Performs a difference comparison of characters in two strings.
         /// </summary>
-        /// <param name="a">The source text.</param>
-        /// <param name="b">The compared text.</param>
-        /// <returns>An array of <see cref="DiffEntry"/>/</returns>
-        public static DiffEntry[] DiffChars(string a, string b)
-        {
-            return DiffChars(a.ToCharArray(), b.ToCharArray());
-        }
-
-        /// <summary>
-        /// Performs a difference comparison of characters in two strings.
-        /// </summary>
         /// <param name="charA">The source character array.</param>
         /// <param name="charB">The compared character array.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
-        public static DiffEntry[] DiffChars(char[] charA, char[] charB)
+        public static DiffEntry[] DiffChars(ReadOnlySpan<char> charA, ReadOnlySpan<char> charB)
         {
             var arrayA = new int[charA.Length];
             var arrayB = new int[charB.Length];
-            Array.Copy(charA, arrayA, charA.Length);
-            Array.Copy(charB, arrayB, charB.Length);
+            for (var i = 0; i < charA.Length; i++)
+            {
+                arrayA[i] = charA[i];
+            }
+            for (var i = 0; i < charB.Length; i++)
+            {
+                arrayB[i] = charB[i];
+            }
+
             return DiffInt(arrayA, arrayB);
         }
 
@@ -74,7 +71,7 @@ namespace NDiff
         /// <param name="arrayA">The source integer array.</param>
         /// <param name="arrayB">The compared integer array.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
-        public static DiffEntry[] DiffInt(int[] arrayA, int[] arrayB)
+        public static DiffEntry[] DiffInt(Span<int> arrayA, Span<int> arrayB)
         {
             var dataA = new DiffData(arrayA);
             var dataB = new DiffData(arrayB);
@@ -121,8 +118,7 @@ namespace NDiff
             bool ignoreCase)
         {
             var count = h.Count;
-            aText = aText.Replace("\r", "");
-            var strArray = aText.Split('\n');
+            var strArray = aText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
             var numArray = new int[strArray.Length];
             for (var i = 0; i < strArray.Length; ++i)
             {
@@ -130,6 +126,10 @@ namespace NDiff
                 if (trimSpace)
                 {
                     index2 = index2.Trim();
+                }
+                else
+                {
+                    index2 = index2.TrimEnd('\r');
                 }
 
                 if (ignoreSpace)
@@ -157,20 +157,20 @@ namespace NDiff
             return numArray;
         }
 
-        private static Smsrd Sms(
+        private static (int x, int y) Sms(
             DiffData dataA,
             int lowerA,
             int upperA,
             DiffData dataB,
             int lowerB,
             int upperB,
-            int[] downVector,
-            int[] upVector)
+            Span<int> downVector,
+            Span<int> upVector)
         {
             var num1 = dataA.Length + dataB.Length + 1;
             var num2 = lowerA - lowerB;
             var num3 = upperA - upperB;
-            var flag = (uint) (upperA - lowerA - (upperB - lowerB) & 1) > 0U;
+            var flag = (uint)(upperA - lowerA - (upperB - lowerB) & 1) > 0U;
             var num4 = num1 - num2;
             var num5 = num1 - num3;
             var num6 = (upperA - lowerA + upperB - lowerB) / 2 + 1;
@@ -204,10 +204,10 @@ namespace NDiff
 
                     downVector[num4 + num7] = index2;
                     if (flag
-                        && num3 - index1 < num7
-                        && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
+                     && num3 - index1 < num7
+                     && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
                     {
-                        return new Smsrd(downVector[num4 + num7], downVector[num4 + num7] - num7);
+                        return new (downVector[num4 + num7], downVector[num4 + num7] - num7);
                     }
 
                     num7 += 2;
@@ -239,10 +239,10 @@ namespace NDiff
 
                     upVector[num5 + num8] = num9;
                     if (!flag
-                        && num2 - index1 <= num8
-                        && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
+                     && num2 - index1 <= num8
+                     && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
                     {
-                        return new Smsrd(downVector[num4 + num8], downVector[num4 + num8] - num8);
+                        return new (downVector[num4 + num8], downVector[num4 + num8] - num8);
                     }
 
                     num8 += 2;
@@ -259,8 +259,8 @@ namespace NDiff
             DiffData dataB,
             int lowerB,
             int upperB,
-            int[] downVector,
-            int[] upVector)
+            Span<int> downVector,
+            Span<int> upVector)
         {
             for (; lowerA < upperA && lowerB < upperB && dataA.Data[lowerA] == dataB.Data[lowerB]; ++lowerB)
             {
@@ -288,9 +288,9 @@ namespace NDiff
             }
             else
             {
-                var smsrd = Sms(dataA, lowerA, upperA, dataB, lowerB, upperB, downVector, upVector);
-                Lcs(dataA, lowerA, smsrd.X, dataB, lowerB, smsrd.Y, downVector, upVector);
-                Lcs(dataA, smsrd.X, upperA, dataB, smsrd.Y, upperB, downVector, upVector);
+                var (x, y) = Sms(dataA, lowerA, upperA, dataB, lowerB, upperB, downVector, upVector);
+                Lcs(dataA, lowerA, x, dataB, lowerB, y, downVector, upVector);
+                Lcs(dataA, x, upperA, dataB, y, upperB, downVector, upVector);
             }
         }
 
@@ -302,8 +302,8 @@ namespace NDiff
             while (index1 < dataA.Length || index2 < dataB.Length)
             {
                 if (index1 < dataA.Length
-                    && !dataA.Modified[index1]
-                    && (index2 < dataB.Length && !dataB.Modified[index2]))
+                 && !dataA.Modified[index1]
+                 && (index2 < dataB.Length && !dataB.Modified[index2]))
                 {
                     ++index1;
                     ++index2;
@@ -330,19 +330,6 @@ namespace NDiff
             }
 
             return objList.ToArray();
-        }
-
-        private readonly struct Smsrd
-        {
-            public Smsrd(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-
-            internal int X { get; }
-
-            internal int Y { get; }
         }
     }
 }

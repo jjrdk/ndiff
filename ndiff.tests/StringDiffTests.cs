@@ -7,10 +7,10 @@
         [Fact]
         public void EqualSequenceAnalysis()
         {
-            var text1 = @"line1
+            const string text1 = @"line1
 line2
 line3";
-            var text2 = @"line1
+            const string text2 = @"line1
 line2
 line3";
 
@@ -22,11 +22,11 @@ line3";
         [Fact]
         public void LongSequenceAnalysis()
         {
-            var text1 = @"line1
+            const string text1 = @"line1
 line2
 line3
 line4";
-            var text2 = @"line1
+            const string text2 = @"line1
 line2
 lineX
 line4";
@@ -40,10 +40,10 @@ line4";
         [Fact]
         public void ShortSequenceAnalysis()
         {
-            var text1 = @"line1
+            const string text1 = @"line1
 line2
 line3";
-            var text2 = @"line1
+            const string text2 = @"line1
 line2
 lineX";
 
@@ -56,10 +56,10 @@ lineX";
         [Fact]
         public void HtmlTextFormatting()
         {
-            var text1 = @"line1
+            const string text1 = @"line1
 line2
 line3";
-            var text2 = @"line1
+            const string text2 = @"line1
 line2
 lineX";
 
@@ -71,8 +71,8 @@ lineX";
         [Fact]
         public void HtmlCharFormatting()
         {
-            var text1 = "text1";
-            var text2 = "text2";
+            const string text1 = "text1";
+            const string text2 = "text2";
 
             var html = text1.FormatDiffCharsAsHtml(text2);
 

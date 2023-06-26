@@ -7,7 +7,7 @@
     /// Defines the result of comparing an item against a previous version.
     /// </summary>
     /// <typeparam name="T">The <see cref="Type"/> of item being compared.</typeparam>
-    public readonly struct Compared<T> : IEquatable<Compared<T>>
+    public readonly record struct Compared<T>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Compared{T}"/> type.
@@ -29,41 +29,5 @@
         /// Gets the compared item.
         /// </summary>
         public T Item { get; }
-
-        /// <inheritdoc />
-        public bool Equals(Compared<T> other)
-        {
-            return Change == other.Change && EqualityComparer<T>.Default.Equals(Item, other.Item);
-        }
-
-        /// <inheritdoc />
-        public override bool Equals(object? obj)
-        {
-            return obj is Compared<T> other && Equals(other);
-        }
-
-        public static bool operator ==(Compared<T>? instance, Compared<T>? other)
-        {
-            if (instance is null || other is null)
-            {
-                return false;
-            }
-            return instance.Equals(other);
-        }
-
-        public static bool operator !=(Compared<T>? instance, Compared<T>? other)
-        {
-            if (instance is null || other is null)
-            {
-                return true;
-            }
-            return !instance.Equals(other);
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return new { Change, Item }.GetHashCode();
-        }
     }
 }

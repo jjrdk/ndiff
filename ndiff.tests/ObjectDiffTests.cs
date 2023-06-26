@@ -9,8 +9,8 @@
         [Fact]
         public void ShortSequenceAnalysis()
         {
-            var sequence1 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3),};
-            var sequence2 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4),};
+            var sequence1 = new[] { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3), };
+            var sequence2 = new[] { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4), };
 
             var diff = sequence1.Diff(sequence2);
 
@@ -21,14 +21,14 @@
         [Fact]
         public void Formatting()
         {
-            var sequence1 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3),};
-            var sequence2 = new[] {new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4),};
+            var sequence1 = new[] { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3), };
+            var sequence2 = new[] { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4), };
 
             var diff = sequence1.Diff(sequence2);
             var formattedCollection = diff.Format(sequence1, sequence2).Select(x => x.Change);
 
             Assert.Equal(
-                new[] {ChangeAction.Unchanged, ChangeAction.Unchanged, ChangeAction.Removed, ChangeAction.Added},
+                new[] { ChangeAction.Unchanged, ChangeAction.Unchanged, ChangeAction.Removed, ChangeAction.Added },
                 formattedCollection);
         }
 
@@ -44,11 +44,11 @@
 
         public static IEnumerable<object[]> DeltaSequences()
         {
-            yield return new object[] {new[] {1, 2, 3, 5, 6, 8, 9}, new[] {1, 2, 4, 6, 7, 8, 9}};
-            yield return new object[] {new[] {3, 5, 6, 8, 9}, new[] {1, 2, 4, 6, 7, 8, 9}};
-            yield return new object[] {new[] {1, 2, 3, 5, 6, 8, 9, 10}, new[] {1, 2, 4, 6, 7, 8, 9}};
-            yield return new object[] {new[] {1, 2, 3, 5, 6, 8, 9, 10}, new[] {1, 2, 4, 6, 7, 8, 9, 11}};
-            yield return new object[] {new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, new[] {6, 7, 8, 9, 11}};
+            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
+            yield return new object[] { new[] { 3, 5, 6, 8, 9 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
+            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9, 10 }, new[] { 1, 2, 4, 6, 7, 8, 9 } };
+            yield return new object[] { new[] { 1, 2, 3, 5, 6, 8, 9, 10 }, new[] { 1, 2, 4, 6, 7, 8, 9, 11 } };
+            yield return new object[] { new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, new[] { 6, 7, 8, 9, 11 } };
         }
     }
 }

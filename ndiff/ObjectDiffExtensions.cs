@@ -46,11 +46,14 @@
         /// <param name="source">The source sequence.</param>
         /// <param name="other">The different sequence.</param>
         /// <returns>An <see cref="IReadOnlyCollection{T}"/> of <see cref="Compared{T}"/> items.</returns>
-        public static IReadOnlyCollection<Compared<T>> Format<T>(this DiffEntry[] diffs, T[] source, T[] other)
+        public static IReadOnlyCollection<Compared<T>> Format<T>(
+            this IReadOnlyList<DiffEntry> diffs,
+            IReadOnlyList<T> source,
+            IReadOnlyList<T> other)
         {
             var resultLines = new List<Compared<T>>();
 
-            for (var x = 0; x < diffs.Length; x++)
+            for (var x = 0; x < diffs.Count; x++)
             {
                 var item = AddUntouchedLines(diffs, x, source, resultLines);
                 AddDeletedLines(item, source, resultLines);
@@ -60,18 +63,17 @@
             return resultLines;
         }
 
-        public static Delta<T>[] CreateDelta<T>(
+        public static IEnumerable<Delta<T>> CreateDelta<T>(
             this IReadOnlyList<T> source,
             IReadOnlyList<T> other,
             IEqualityComparer<T>? equalityComparer = null)
             where T : IEquatable<T>
         {
             return source.Diff(other, equalityComparer)
-                .Select(d => new Delta<T>(d, other.Skip(d.StartCompared).Take(d.InsertedCompared).ToArray()))
-                .ToArray();
+                .Select(d => new Delta<T>(d, other.Skip(d.StartCompared).Take(d.InsertedCompared)));
         }
 
-        public static T[] ApplyDeltas<T>(this IReadOnlyCollection<T> source, params Delta<T>[] diff)
+        public static IEnumerable<T> ApplyDeltas<T>(this IReadOnlyCollection<T> source, IEnumerable<Delta<T>> diff)
         {
             var position = 0;
             var output = Enumerable.Empty<T>();
@@ -83,10 +85,18 @@
 
             output = output.Concat(source.Skip(position));
 
-            return output.ToArray();
+            return output;
         }
 
-        private static void AddInsertedLines<T>(DiffEntry diffEntry, T[] lines, List<Compared<T>> resultLines)
+        public static IEnumerable<T> ApplyDeltas<T>(this IReadOnlyCollection<T> source, params Delta<T>[] diff)
+        {
+            return ApplyDeltas(source, diff.AsEnumerable());
+        }
+
+        private static void AddInsertedLines<T>(
+            DiffEntry diffEntry,
+            IEnumerable<T> lines,
+            List<Compared<T>> resultLines)
         {
             var inserted = lines.Skip(diffEntry.StartCompared)
                 .Take(diffEntry.InsertedCompared)
@@ -95,7 +105,7 @@
             resultLines.AddRange(inserted);
         }
 
-        private static void AddDeletedLines<T>(DiffEntry diffEntry, T[] lines, List<Compared<T>> resultLines)
+        private static void AddDeletedLines<T>(DiffEntry diffEntry, IEnumerable<T> lines, List<Compared<T>> resultLines)
         {
             var deleted = lines.Skip(diffEntry.StartSource - 1)
                 .Take(diffEntry.DeletedSource)
@@ -103,7 +113,11 @@
             resultLines.AddRange(deleted);
         }
 
-        private static DiffEntry AddUntouchedLines<T>(DiffEntry[] diff, int x, T[] lines, List<Compared<T>> resultLines)
+        private static DiffEntry AddUntouchedLines<T>(
+            IReadOnlyList<DiffEntry> diff,
+            int x,
+            IEnumerable<T> lines,
+            List<Compared<T>> resultLines)
         {
             var item = diff[x];
             var offset = x == 0 ? 0 : diff[x - 1].StartSource + diff[x - 1].DeletedSource;
@@ -212,8 +226,8 @@
 
                     downVector[num4 + num7] = index2;
                     if (flag
-                        && num3 - index1 < num7
-                        && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
+                     && num3 - index1 < num7
+                     && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
                     {
                         return new Smsrd(downVector[num4 + num7], downVector[num4 + num7] - num7);
                     }
@@ -247,8 +261,8 @@
 
                     upVector[num5 + num8] = num9;
                     if (!flag
-                        && num2 - index1 <= num8
-                        && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
+                     && num2 - index1 <= num8
+                     && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
                     {
                         return new Smsrd(downVector[num4 + num8], downVector[num4 + num8] - num8);
                     }
@@ -310,8 +324,8 @@
             while (index1 < dataA.Length || index2 < dataB.Length)
             {
                 if (index1 < dataA.Length
-                    && !dataA.Modified[index1]
-                    && (index2 < dataB.Length && !dataB.Modified[index2]))
+                 && !dataA.Modified[index1]
+                 && (index2 < dataB.Length && !dataB.Modified[index2]))
                 {
                     ++index1;
                     ++index2;
