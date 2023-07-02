@@ -1,6 +1,7 @@
 ﻿// Adapted from the original code at http://www.mathertel.de/Diff/
 
 // ReSharper disable CognitiveComplexity
+
 namespace NDiff
 {
     using System;
@@ -10,9 +11,17 @@ namespace NDiff
     /// <summary>
     /// Defines the string diff extensions.
     /// </summary>
+    ///
+#if NET7_0_OR_GREATER
+    public static partial class StringDiffExtensions
+    {
+        [GeneratedRegex("\\s+", RegexOptions.Multiline | RegexOptions.Compiled)]
+        private static partial Regex Spaces();
+#else
     public static class StringDiffExtensions
     {
         private static readonly Regex Spaces = new Regex("\\s+", RegexOptions.Multiline | RegexOptions.Compiled);
+#endif
 
         /// <summary>
         /// Performs a difference calculation on the passed texts
@@ -22,21 +31,23 @@ namespace NDiff
         /// <param name="trimSpace">Sets whether to trim whitespace.</param>
         /// <param name="ignoreSpace">Sets whether to ignore whitespace.</param>
         /// <param name="ignoreCase">Sets whether to ignore case.</param>
+        /// <param name="equalityComparer">Sets the <see cref="IEqualityComparer{T}"/> for the text comparison.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
         public static DiffEntry[] DiffText(
             string textSource,
             string textCompared,
             bool trimSpace = false,
             bool ignoreSpace = false,
-            bool ignoreCase = false)
+            bool ignoreCase = false,
+            IEqualityComparer<string>? equalityComparer = null)
         {
-            var h = new Dictionary<string, int>(textSource.Length + textCompared.Length);
+            var h = new Dictionary<string, int>(textSource.Length + textCompared.Length, equalityComparer);
             var diffData1 = new DiffData(DiffCodes(textSource, h, trimSpace, ignoreSpace, ignoreCase));
             var diffData2 = new DiffData(DiffCodes(textCompared, h, trimSpace, ignoreSpace, ignoreCase));
             h.Clear();
             var num = diffData1.Length + diffData2.Length + 1;
-            var downVector = new int[2 * num + 2];
-            var upVector = new int[2 * num + 2];
+            Span<int> downVector = stackalloc int[2 * num + 2];
+            Span<int> upVector = stackalloc int[2 * num + 2];
             Lcs(diffData1, 0, diffData1.Length, diffData2, 0, diffData2.Length, downVector, upVector);
             Optimize(diffData1);
             Optimize(diffData2);
@@ -51,12 +62,13 @@ namespace NDiff
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
         public static DiffEntry[] DiffChars(ReadOnlySpan<char> charA, ReadOnlySpan<char> charB)
         {
-            var arrayA = new int[charA.Length];
-            var arrayB = new int[charB.Length];
+            Span<int> arrayA = stackalloc int[charA.Length];
+            Span<int> arrayB = stackalloc int[charB.Length];
             for (var i = 0; i < charA.Length; i++)
             {
                 arrayA[i] = charA[i];
             }
+
             for (var i = 0; i < charB.Length; i++)
             {
                 arrayB[i] = charB[i];
@@ -76,8 +88,8 @@ namespace NDiff
             var dataA = new DiffData(arrayA);
             var dataB = new DiffData(arrayB);
             var num = dataA.Length + dataB.Length + 1;
-            var downVector = new int[2 * num + 2];
-            var upVector = new int[2 * num + 2];
+            Span<int> downVector = stackalloc int[2 * num + 2];
+            Span<int> upVector = stackalloc int[2 * num + 2];
             Lcs(dataA, 0, dataA.Length, dataB, 0, dataB.Length, downVector, upVector);
             return CreateDiffs(dataA, dataB);
         }
@@ -110,7 +122,7 @@ namespace NDiff
             }
         }
 
-        private static int[] DiffCodes(
+        private static Span<int> DiffCodes(
             string aText,
             Dictionary<string, int> h,
             bool trimSpace,
@@ -119,7 +131,7 @@ namespace NDiff
         {
             var count = h.Count;
             var strArray = aText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            var numArray = new int[strArray.Length];
+            Span<int> numArray = new int[strArray.Length];
             for (var i = 0; i < strArray.Length; ++i)
             {
                 var index2 = strArray[i];
@@ -134,7 +146,11 @@ namespace NDiff
 
                 if (ignoreSpace)
                 {
+#if NET7_0_OR_GREATER
+                    index2 = Spaces().Replace(index2, " ");
+#else
                     index2 = Spaces.Replace(index2, " ");
+#endif
                 }
 
                 if (ignoreCase)
@@ -207,7 +223,7 @@ namespace NDiff
                      && num3 - index1 < num7
                      && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
                     {
-                        return new (downVector[num4 + num7], downVector[num4 + num7] - num7);
+                        return new(downVector[num4 + num7], downVector[num4 + num7] - num7);
                     }
 
                     num7 += 2;
@@ -242,7 +258,7 @@ namespace NDiff
                      && num2 - index1 <= num8
                      && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
                     {
-                        return new (downVector[num4 + num8], downVector[num4 + num8] - num8);
+                        return new(downVector[num4 + num8], downVector[num4 + num8] - num8);
                     }
 
                     num8 += 2;

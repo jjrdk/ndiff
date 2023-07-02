@@ -14,7 +14,7 @@
 
             var diff = sequence1.Diff(sequence2);
 
-            Assert.Single(diff);
+            Assert.Equal(1, diff.Length);
             Assert.Equal(new DiffEntry(2, 2, 1, 1), diff[0]);
         }
 

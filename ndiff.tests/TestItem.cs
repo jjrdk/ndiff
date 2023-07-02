@@ -1,4 +1,4 @@
 ﻿namespace NDiff.Tests
 {
-    internal record TestItem(string Text, int Value);
+    internal record struct TestItem(string Text, int Value);
 }

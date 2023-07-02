@@ -1,8 +1,12 @@
-﻿namespace NDiff
+﻿// ReSharper disable CognitiveComplexity
+
+namespace NDiff
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Defines the diff calculation extensions for objects.
@@ -20,7 +24,7 @@
         /// <param name="other">The different sequence.</param>
         /// <param name="equalityComparer">The <see cref="IEqualityComparer{T}"/> to use.</param>
         /// <returns>An array of <see cref="DiffEntry"/>.</returns>
-        public static DiffEntry[] Diff<T>(
+        public static Span<DiffEntry> Diff<T>(
             this IReadOnlyList<T> source,
             IReadOnlyList<T> other,
             IEqualityComparer<T>? equalityComparer = null) where T : notnull
@@ -30,8 +34,8 @@
             var diffData2 = new DiffData(DiffCodes(other, h));
             h.Clear();
             var num = diffData1.Length + diffData2.Length + 1;
-            var downVector = new int[2 * num + 2];
-            var upVector = new int[2 * num + 2];
+            Span<int> downVector = stackalloc int[2 * num + 2];
+            Span<int> upVector = stackalloc int[2 * num + 2];
             Lcs(diffData1, 0, diffData1.Length, diffData2, 0, diffData2.Length, downVector, upVector);
             Optimize(diffData1);
             Optimize(diffData2);
@@ -47,13 +51,13 @@
         /// <param name="other">The different sequence.</param>
         /// <returns>An <see cref="IReadOnlyCollection{T}"/> of <see cref="Compared{T}"/> items.</returns>
         public static IReadOnlyCollection<Compared<T>> Format<T>(
-            this IReadOnlyList<DiffEntry> diffs,
+            this Span<DiffEntry> diffs,
             IReadOnlyList<T> source,
             IReadOnlyList<T> other)
         {
             var resultLines = new List<Compared<T>>();
 
-            for (var x = 0; x < diffs.Count; x++)
+            for (var x = 0; x < diffs.Length; x++)
             {
                 var item = AddUntouchedLines(diffs, x, source, resultLines);
                 AddDeletedLines(item, source, resultLines);
@@ -63,14 +67,30 @@
             return resultLines;
         }
 
-        public static IEnumerable<Delta<T>> CreateDelta<T>(
+        public static Delta<T>[] CreateDelta<T>(
             this IReadOnlyList<T> source,
             IReadOnlyList<T> other,
             IEqualityComparer<T>? equalityComparer = null)
             where T : IEquatable<T>
         {
-            return source.Diff(other, equalityComparer)
-                .Select(d => new Delta<T>(d, other.Skip(d.StartCompared).Take(d.InsertedCompared)));
+            var span = source.Diff(other, equalityComparer);
+            var result = new Delta<T>[span.Length];
+            ReadOnlySpan<T> otherSpan = other switch
+            {
+                List<T> l => CollectionsMarshal.AsSpan(l),
+                T[] a => a.AsSpan(),
+                ImmutableArray<T> i => i.AsSpan(),
+                _ => other.ToArray().AsSpan()
+            };
+            for (var i = 0; i < span.Length; i++)
+            {
+                var diffEntry = span[i];
+                result[i] = new Delta<T>(diffEntry,
+                    otherSpan.Slice(diffEntry.StartCompared,
+                        diffEntry.InsertedCompared).ToArray());
+            }
+
+            return result;
         }
 
         public static IEnumerable<T> ApplyDeltas<T>(this IReadOnlyCollection<T> source, IEnumerable<Delta<T>> diff)
@@ -98,23 +118,42 @@
             IEnumerable<T> lines,
             List<Compared<T>> resultLines)
         {
-            var inserted = lines.Skip(diffEntry.StartCompared)
-                .Take(diffEntry.InsertedCompared)
-                .Select(x => new Compared<T>(x, ChangeAction.Added));
-
-            resultLines.AddRange(inserted);
+            var span = (lines) switch
+            {
+                List<T> l => CollectionsMarshal.AsSpan(l).Slice(diffEntry.StartCompared - 1,
+                    diffEntry.InsertedCompared),
+                T[] a => a.AsSpan().Slice(diffEntry.StartCompared - 1,
+                    diffEntry.InsertedCompared),
+                ImmutableArray<T> i => i.AsSpan().Slice(diffEntry.StartCompared - 1,
+                    diffEntry.InsertedCompared),
+                _ => lines.Skip(diffEntry.StartCompared).Take(diffEntry.InsertedCompared).ToArray().AsSpan()
+            };
+            foreach (var t in span)
+            {
+                resultLines.Add(new Compared<T>(t, ChangeAction.Added));
+            }
         }
 
         private static void AddDeletedLines<T>(DiffEntry diffEntry, IEnumerable<T> lines, List<Compared<T>> resultLines)
         {
-            var deleted = lines.Skip(diffEntry.StartSource - 1)
-                .Take(diffEntry.DeletedSource)
-                .Select(x => new Compared<T>(x, ChangeAction.Removed));
-            resultLines.AddRange(deleted);
+            var span = (lines) switch
+            {
+                List<T> l => CollectionsMarshal.AsSpan(l).Slice(diffEntry.StartSource - 1,
+                    diffEntry.DeletedSource),
+                T[] a => a.AsSpan().Slice(diffEntry.StartSource - 1,
+                    diffEntry.DeletedSource),
+                ImmutableArray<T> i => i.AsSpan().Slice(diffEntry.StartSource - 1,
+                    diffEntry.DeletedSource),
+                _ => lines.Skip(diffEntry.StartSource).Take(diffEntry.DeletedSource).ToArray().AsSpan()
+            };
+            foreach (var t in span)
+            {
+                resultLines.Add(new Compared<T>(t, ChangeAction.Removed));
+            }
         }
 
         private static DiffEntry AddUntouchedLines<T>(
-            IReadOnlyList<DiffEntry> diff,
+            Span<DiffEntry> diff,
             int x,
             IEnumerable<T> lines,
             List<Compared<T>> resultLines)
@@ -122,9 +161,18 @@
             var item = diff[x];
             var offset = x == 0 ? 0 : diff[x - 1].StartSource + diff[x - 1].DeletedSource;
             var count = item.StartSource - offset;
-            var untouched = lines.Skip(offset).Take(count).Select(a => new Compared<T>(a, ChangeAction.Unchanged));
+            var span = (lines) switch
+            {
+                List<T> l => CollectionsMarshal.AsSpan(l).Slice(offset, count),
+                T[] a => a.AsSpan().Slice(offset,count),
+                ImmutableArray<T> i => i.AsSpan().Slice(offset, count),
+                _ => lines.Skip(offset).Take(count).ToArray().AsSpan()
+            };
+            foreach (var t in span)
+            {
+                resultLines.Add(new Compared<T>(t, ChangeAction.Unchanged));
+            }
 
-            resultLines.AddRange(untouched);
             return item;
         }
 
@@ -179,15 +227,15 @@
             return numArray;
         }
 
-        private static Smsrd Sms(
+        private static (int x, int y) Sms(
             DiffData dataA,
             int lowerA,
             int upperA,
             DiffData dataB,
             int lowerB,
             int upperB,
-            int[] downVector,
-            int[] upVector)
+            Span<int> downVector,
+            Span<int> upVector)
         {
             var num1 = dataA.Length + dataB.Length + 1;
             var num2 = lowerA - lowerB;
@@ -229,7 +277,7 @@
                      && num3 - index1 < num7
                      && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
                     {
-                        return new Smsrd(downVector[num4 + num7], downVector[num4 + num7] - num7);
+                        return new(downVector[num4 + num7], downVector[num4 + num7] - num7);
                     }
 
                     num7 += 2;
@@ -264,7 +312,7 @@
                      && num2 - index1 <= num8
                      && (num8 <= num2 + index1 && upVector[num5 + num8] <= downVector[num4 + num8]))
                     {
-                        return new Smsrd(downVector[num4 + num8], downVector[num4 + num8] - num8);
+                        return (downVector[num4 + num8], downVector[num4 + num8] - num8);
                     }
 
                     num8 += 2;
@@ -281,8 +329,8 @@
             DiffData dataB,
             int lowerB,
             int upperB,
-            int[] downVector,
-            int[] upVector)
+            Span<int> downVector,
+            Span<int> upVector)
         {
             for (; lowerA < upperA && lowerB < upperB && dataA.Data[lowerA] == dataB.Data[lowerB]; ++lowerB)
             {
@@ -310,13 +358,13 @@
             }
             else
             {
-                var smsrd = Sms(dataA, lowerA, upperA, dataB, lowerB, upperB, downVector, upVector);
-                Lcs(dataA, lowerA, smsrd.X, dataB, lowerB, smsrd.Y, downVector, upVector);
-                Lcs(dataA, smsrd.X, upperA, dataB, smsrd.Y, upperB, downVector, upVector);
+                var sms = Sms(dataA, lowerA, upperA, dataB, lowerB, upperB, downVector, upVector);
+                Lcs(dataA, lowerA, sms.x, dataB, lowerB, sms.y, downVector, upVector);
+                Lcs(dataA, sms.x, upperA, dataB, sms.y, upperB, downVector, upVector);
             }
         }
 
-        private static DiffEntry[] CreateDiffs(DiffData dataA, DiffData dataB)
+        private static Span<DiffEntry> CreateDiffs(DiffData dataA, DiffData dataB)
         {
             var objList = new List<DiffEntry>();
             var index1 = 0;
@@ -351,20 +399,7 @@
                 }
             }
 
-            return objList.ToArray();
-        }
-
-        private readonly struct Smsrd
-        {
-            public Smsrd(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-
-            public int X { get; }
-
-            public int Y { get; }
+            return CollectionsMarshal.AsSpan(objList);
         }
     }
 }

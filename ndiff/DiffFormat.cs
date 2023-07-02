@@ -80,7 +80,7 @@
             List<string> resultLines)
         {
             var item = diff[x];
-            var offset = x == 0 ? 0 : (diff[x - 1].StartSource + diff[x - 1].DeletedSource);
+            var offset = x == 0 ? 0 : diff[x - 1].StartSource + diff[x - 1].DeletedSource;
             var count = item.StartSource - offset;
             var untouched = text1Lines.GetRange(offset, count);
             resultLines.AddRange(untouched);

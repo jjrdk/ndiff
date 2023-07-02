@@ -1,6 +1,6 @@
 ﻿namespace NDiff
 {
-    using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Defines the delta type.
@@ -13,7 +13,7 @@
         /// </summary>
         /// <param name="diff">The <see cref="DiffEntry"/> describing the change.</param>
         /// <param name="added">The items added.</param>
-        public Delta(DiffEntry diff, IEnumerable<T> added)
+        public Delta(DiffEntry diff, T[] added)
         {
             Diff = diff;
             Added = added;
@@ -27,6 +27,6 @@
         /// <summary>
         /// Gets the items added.
         /// </summary>
-        public IEnumerable<T> Added { get; }
+        public T[] Added { get; }
     }
 }

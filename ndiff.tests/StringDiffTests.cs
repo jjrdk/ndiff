@@ -1,5 +1,6 @@
 ﻿namespace NDiff.Tests
 {
+    using System;
     using Xunit;
 
     public class StringDiffTests
@@ -15,6 +16,21 @@ line2
 line3";
 
             var diffs = StringDiffExtensions.DiffText(text1, text2);
+
+            Assert.Empty(diffs);
+        }
+
+        [Fact]
+        public void CaseInsensitiveEqualSequenceAnalysis()
+        {
+            const string text1 = @"liNe1
+linE2
+line3";
+            const string text2 = @"line1
+line2
+line3";
+
+            var diffs = StringDiffExtensions.DiffText(text1, text2, equalityComparer: StringComparer.OrdinalIgnoreCase);
 
             Assert.Empty(diffs);
         }
