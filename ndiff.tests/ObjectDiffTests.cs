@@ -1,6 +1,7 @@
 ﻿namespace NDiff.Tests
 {
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using Xunit;
 
@@ -11,6 +12,20 @@
         {
             var sequence1 = new[] { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3), };
             var sequence2 = new[] { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4), };
+
+            var diff = sequence1.Diff(sequence2);
+
+            Assert.Equal(1, diff.Length);
+            Assert.Equal(new DiffEntry(2, 2, 1, 1), diff[0]);
+        }
+
+        [Fact]
+        public void ShortImmutableArrayAnalysis()
+        {
+            var sequence1 = ImmutableArray.Create(new[]
+                { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 3", 3), });
+            var sequence2 = ImmutableArray.Create(new[]
+                { new TestItem("Item 1", 1), new TestItem("Item 2", 2), new TestItem("Item 4", 4), });
 
             var diff = sequence1.Diff(sequence2);
 

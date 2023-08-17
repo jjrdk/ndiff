@@ -79,9 +79,25 @@ line3";
 line2
 lineX";
 
-            var html = text1.FormatDiffTextAsHtml(text2, null, null, true, true, true);
+            var html = text1.FormatDiffTextAsHtml(text2, null, null, true, true, StringComparer.OrdinalIgnoreCase);
 
             Assert.Equal("line1<br/>line2<br/><del>line3</del><br/><b>lineX</b>", html);
+        }
+
+        [Fact]
+        public void LongHtmlTextFormatting()
+        {
+            const string text1 = @"line1
+line2
+line3
+line4";
+            const string text2 = @"line1
+line2
+lineX";
+
+            var html = text1.FormatDiffTextAsHtml(text2, null, null, true, true, StringComparer.OrdinalIgnoreCase);
+
+            Assert.Equal("line1<br/>line2<br/><del>line3</del><del>line4</del><br/><b>lineX</b>", html);
         }
 
         [Fact]
@@ -90,7 +106,7 @@ lineX";
             const string text1 = "text1";
             const string text2 = "text2";
 
-            var html = text1.FormatDiffCharsAsHtml(text2);
+            var html = text1.AsSpan().FormatDiffCharsAsHtml(text2.AsSpan());
 
             Assert.Equal("text<del>1</del><em>2</em>", html);
         }

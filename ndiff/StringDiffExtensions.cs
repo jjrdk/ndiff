@@ -38,12 +38,11 @@ namespace NDiff
             string textCompared,
             bool trimSpace = false,
             bool ignoreSpace = false,
-            bool ignoreCase = false,
             IEqualityComparer<string>? equalityComparer = null)
         {
             var h = new Dictionary<string, int>(textSource.Length + textCompared.Length, equalityComparer);
-            var diffData1 = new DiffData(DiffCodes(textSource, h, trimSpace, ignoreSpace, ignoreCase));
-            var diffData2 = new DiffData(DiffCodes(textCompared, h, trimSpace, ignoreSpace, ignoreCase));
+            var diffData1 = new DiffData(DiffCodes(textSource, h, trimSpace, ignoreSpace));
+            var diffData2 = new DiffData(DiffCodes(textCompared, h, trimSpace, ignoreSpace));
             h.Clear();
             var num = diffData1.Length + diffData2.Length + 1;
             Span<int> downVector = stackalloc int[2 * num + 2];
@@ -126,8 +125,7 @@ namespace NDiff
             string aText,
             Dictionary<string, int> h,
             bool trimSpace,
-            bool ignoreSpace,
-            bool ignoreCase)
+            bool ignoreSpace)
         {
             var count = h.Count;
             var strArray = aText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -135,14 +133,7 @@ namespace NDiff
             for (var i = 0; i < strArray.Length; ++i)
             {
                 var index2 = strArray[i];
-                if (trimSpace)
-                {
-                    index2 = index2.Trim();
-                }
-                else
-                {
-                    index2 = index2.TrimEnd('\r');
-                }
+                index2 = trimSpace ? index2.Trim() : index2.TrimEnd('\r');
 
                 if (ignoreSpace)
                 {
@@ -151,11 +142,6 @@ namespace NDiff
 #else
                     index2 = Spaces.Replace(index2, " ");
 #endif
-                }
-
-                if (ignoreCase)
-                {
-                    index2 = index2.ToLower();
                 }
 
                 if (!h.TryGetValue(index2, out var num))

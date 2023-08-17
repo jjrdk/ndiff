@@ -67,6 +67,14 @@ namespace NDiff
             return resultLines;
         }
 
+        /// <summary>
+        /// Creates a <see cref="Delta{T}"/> array from the source and different sequences.
+        /// </summary>
+        /// <param name="source">The source sequence.</param>
+        /// <param name="other">The comparison sequence.</param>
+        /// <param name="equalityComparer">The <see cref="IEqualityComparer{T}"/> for <typeparam name="T"></typeparam></param>
+        /// <typeparam name="T">The <see cref="Type"/> of item in the sequence.</typeparam>
+        /// <returns>An <see cref="Array"/> of <see cref="Delta{T}"/>.</returns>
         public static Delta<T>[] CreateDelta<T>(
             this IReadOnlyList<T> source,
             IReadOnlyList<T> other,
@@ -75,7 +83,7 @@ namespace NDiff
         {
             var span = source.Diff(other, equalityComparer);
             var result = new Delta<T>[span.Length];
-            ReadOnlySpan<T> otherSpan = other switch
+            var otherSpan = other switch
             {
                 List<T> l => CollectionsMarshal.AsSpan(l),
                 T[] a => a.AsSpan(),
@@ -93,6 +101,13 @@ namespace NDiff
             return result;
         }
 
+        /// <summary>
+        /// Update a source sequence with the changes from a <see cref="Delta{T}"/> array.
+        /// </summary>
+        /// <param name="source">The source sequence.</param>
+        /// <param name="diff">The delta set.</param>
+        /// <typeparam name="T">The <see cref="Type"/> of item in the sequence.</typeparam>
+        /// <returns>An updated set up items.</returns>
         public static IEnumerable<T> ApplyDeltas<T>(this IReadOnlyCollection<T> source, IEnumerable<Delta<T>> diff)
         {
             var position = 0;
@@ -108,6 +123,13 @@ namespace NDiff
             return output;
         }
 
+        /// <summary>
+        /// Update a source sequence with the changes from a <see cref="Delta{T}"/> array.
+        /// </summary>
+        /// <param name="source">The source sequence.</param>
+        /// <param name="diff">The delta set.</param>
+        /// <typeparam name="T">The <see cref="Type"/> of item in the sequence.</typeparam>
+        /// <returns>An updated set up items.</returns>
         public static IEnumerable<T> ApplyDeltas<T>(this IReadOnlyCollection<T> source, params Delta<T>[] diff)
         {
             return ApplyDeltas(source, diff.AsEnumerable());
@@ -277,7 +299,7 @@ namespace NDiff
                      && num3 - index1 < num7
                      && (num7 < num3 + index1 && upVector[num5 + num7] <= downVector[num4 + num7]))
                     {
-                        return new(downVector[num4 + num7], downVector[num4 + num7] - num7);
+                        return (downVector[num4 + num7], downVector[num4 + num7] - num7);
                     }
 
                     num7 += 2;
