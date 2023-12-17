@@ -30,7 +30,6 @@ namespace NDiff
         /// <param name="textCompared">The compared text.</param>
         /// <param name="trimSpace">Sets whether to trim whitespace.</param>
         /// <param name="ignoreSpace">Sets whether to ignore whitespace.</param>
-        /// <param name="ignoreCase">Sets whether to ignore case.</param>
         /// <param name="equalityComparer">Sets the <see cref="IEqualityComparer{T}"/> for the text comparison.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
         public static DiffEntry[] DiffText(

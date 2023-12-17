@@ -112,10 +112,10 @@ namespace NDiff
         {
             var position = 0;
             var output = Enumerable.Empty<T>();
-            foreach (var item in diff)
+            foreach (var delta in diff)
             {
-                output = output.Concat(source.Skip(position).Take(item.Diff.StartSource - position).Concat(item.Added));
-                position = item.Diff.StartSource + item.Diff.DeletedSource;
+                output = output.Concat(source.Skip(position).Take(delta.Diff.StartSource - position).Concat(delta.Added));
+                position = delta.Diff.StartSource + delta.Diff.DeletedSource;
             }
 
             output = output.Concat(source.Skip(position));
@@ -140,7 +140,7 @@ namespace NDiff
             IEnumerable<T> lines,
             List<Compared<T>> resultLines)
         {
-            var span = (lines) switch
+            var span = lines switch
             {
                 List<T> l => CollectionsMarshal.AsSpan(l).Slice(diffEntry.StartCompared - 1,
                     diffEntry.InsertedCompared),
