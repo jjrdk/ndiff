@@ -8,12 +8,16 @@
         [Fact]
         public void EqualSequenceAnalysis()
         {
-            const string text1 = @"line1
-line2
-line3";
-            const string text2 = @"line1
-line2
-line3";
+            const string text1 = """
+                                 line1
+                                 line2
+                                 line3
+                                 """;
+            const string text2 = """
+                                 line1
+                                 line2
+                                 line3
+                                 """;
 
             var diffs = StringDiffExtensions.DiffText(text1, text2);
 
@@ -23,12 +27,16 @@ line3";
         [Fact]
         public void CaseInsensitiveEqualSequenceAnalysis()
         {
-            const string text1 = @"liNe1
-linE2
-line3";
-            const string text2 = @"line1
-line2
-line3";
+            const string text1 = """
+                                 liNe1
+                                 linE2
+                                 line3
+                                 """;
+            const string text2 = """
+                                 line1
+                                 line2
+                                 line3
+                                 """;
 
             var diffs = StringDiffExtensions.DiffText(text1, text2, equalityComparer: StringComparer.OrdinalIgnoreCase);
 
@@ -38,14 +46,18 @@ line3";
         [Fact]
         public void LongSequenceAnalysis()
         {
-            const string text1 = @"line1
-line2
-line3
-line4";
-            const string text2 = @"line1
-line2
-lineX
-line4";
+            const string text1 = """
+                                 line1
+                                 line2
+                                 line3
+                                 line4
+                                 """;
+            const string text2 = """
+                                 line1
+                                 line2
+                                 lineX
+                                 line4
+                                 """;
 
             var diffs = StringDiffExtensions.DiffText(text1, text2);
 
@@ -56,12 +68,16 @@ line4";
         [Fact]
         public void ShortSequenceAnalysis()
         {
-            const string text1 = @"line1
-line2
-line3";
-            const string text2 = @"line1
-line2
-lineX";
+            const string text1 = """
+                                 line1
+                                 line2
+                                 line3
+                                 """;
+            const string text2 = """
+                                 line1
+                                 line2
+                                 lineX
+                                 """;
 
             var diffs = StringDiffExtensions.DiffText(text1, text2);
 
@@ -72,12 +88,16 @@ lineX";
         [Fact]
         public void HtmlTextFormatting()
         {
-            const string text1 = @"line1
-line2
-line3";
-            const string text2 = @"line1
-line2
-lineX";
+            const string text1 = """
+                                 line1
+                                 line2
+                                 line3
+                                 """;
+            const string text2 = """
+                                 line1
+                                 line2
+                                 lineX
+                                 """;
 
             var html = text1.FormatDiffTextAsHtml(text2, null, null, true, true, StringComparer.OrdinalIgnoreCase);
 
@@ -87,13 +107,17 @@ lineX";
         [Fact]
         public void LongHtmlTextFormatting()
         {
-            const string text1 = @"line1
-line2
-line3
-line4";
-            const string text2 = @"line1
-line2
-lineX";
+            const string text1 = """
+                                 line1
+                                 line2
+                                 line3
+                                 line4
+                                 """;
+            const string text2 = """
+                                 line1
+                                 line2
+                                 lineX
+                                 """;
 
             var html = text1.FormatDiffTextAsHtml(text2, null, null, true, true, StringComparer.OrdinalIgnoreCase);
 

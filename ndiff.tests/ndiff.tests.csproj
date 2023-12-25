@@ -1,25 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
-
+        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
 
         <RootNamespace>NDiff.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="xunit" Version="2.6.2" />
+        <PackageReference Include="xunit" Version="2.6.2"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" Condition="'$(TargetFramework)' != 'net8.0'" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" Condition="'$(TargetFramework)' == 'net8.0'" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" Condition="'$(TargetFramework)' != 'net8.0'"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" Condition="'$(TargetFramework)' == 'net8.0'"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ndiff\ndiff.csproj" />
+        <ProjectReference Include="..\ndiff\ndiff.csproj"/>
     </ItemGroup>
 
 </Project>
