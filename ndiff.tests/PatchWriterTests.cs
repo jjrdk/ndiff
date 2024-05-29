@@ -49,11 +49,14 @@ public class PatchWriterTests
 
         const string expected = """
                                 diff
-                                @@ -2, 1 + 2, 1 @@
-                                line1
-                                line2
-                                + lineX
-                                - line3
+                                @@ -2,1 +2,1 @@
+                                    TestItem { Text = test, Value = 1 }
+                                TestItem { Text = test, Value = 2 }
+                                +   TestItem { Text = test, Value = 4 }
+                                -   TestItem { Text = test, Value = 3 }
+
                                 """;
+
+        Assert.Equal(expected, patch);
     }
 }
