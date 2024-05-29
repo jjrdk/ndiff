@@ -19,7 +19,7 @@
                                  line3
                                  """;
 
-            var diffs = StringDiffExtensions.DiffText(text1, text2);
+            var diffs = text1.DiffText(text2);
 
             Assert.Empty(diffs);
         }
@@ -107,17 +107,13 @@
         [Fact]
         public void LongHtmlTextFormatting()
         {
-            const string text1 = """
-                                 line1
-                                 line2
-                                 line3
-                                 line4
-                                 """;
-            const string text2 = """
-                                 line1
-                                 line2
-                                 lineX
-                                 """;
+            const string text1 = @"line1
+line2
+line3
+line4";
+            const string text2 = @"line1
+line2
+lineX";
 
             var html = text1.FormatDiffTextAsHtml(text2, null, null, true, true, StringComparer.OrdinalIgnoreCase);
 

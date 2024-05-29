@@ -95,7 +95,7 @@ namespace NDiff
             var offset = x == 0 ? 0 : diff[x - 1].StartSource + diff[x - 1].DeletedSource;
             var count = item.StartSource - offset;
             var untouched = text1Lines.GetRange(offset, count);
-            for (int i = 0; i < untouched.Count; i++)
+            for (var i = 0; i < untouched.Count; i++)
             {
                 resultLines.Append(untouched[i]);
                 resultLines.Append(Separator.AsMemory());

@@ -33,7 +33,7 @@ namespace NDiff
         /// <param name="equalityComparer">Sets the <see cref="IEqualityComparer{T}"/> for the text comparison.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
         public static DiffEntry[] DiffText(
-            string textSource,
+            this string textSource,
             string textCompared,
             bool trimSpace = false,
             bool ignoreSpace = false,
@@ -58,7 +58,7 @@ namespace NDiff
         /// <param name="charA">The source character array.</param>
         /// <param name="charB">The compared character array.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
-        public static DiffEntry[] DiffChars(ReadOnlySpan<char> charA, ReadOnlySpan<char> charB)
+        public static DiffEntry[] DiffChars(this ReadOnlySpan<char> charA, ReadOnlySpan<char> charB)
         {
             Span<int> arrayA = stackalloc int[charA.Length];
             Span<int> arrayB = stackalloc int[charB.Length];
@@ -81,7 +81,7 @@ namespace NDiff
         /// <param name="arrayA">The source integer array.</param>
         /// <param name="arrayB">The compared integer array.</param>
         /// <returns>An array of <see cref="DiffEntry"/>/</returns>
-        public static DiffEntry[] DiffInt(Span<int> arrayA, Span<int> arrayB)
+        public static DiffEntry[] DiffInt(this Span<int> arrayA, Span<int> arrayB)
         {
             var dataA = new DiffData(arrayA);
             var dataB = new DiffData(arrayB);
