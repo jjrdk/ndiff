@@ -11,17 +11,10 @@ namespace NDiff
     /// <summary>
     /// Defines the string diff extensions.
     /// </summary>
-    ///
-#if NET7_0_OR_GREATER
     public static partial class StringDiffExtensions
     {
         [GeneratedRegex("\\s+", RegexOptions.Multiline | RegexOptions.Compiled)]
         private static partial Regex Spaces();
-#else
-    public static class StringDiffExtensions
-    {
-        private static readonly Regex Spaces = new Regex("\\s+", RegexOptions.Multiline | RegexOptions.Compiled);
-#endif
 
         /// <summary>
         /// Performs a difference calculation on the passed texts
@@ -136,11 +129,7 @@ namespace NDiff
 
                 if (ignoreSpace)
                 {
-#if NET7_0_OR_GREATER
                     index2 = Spaces().Replace(index2, " ");
-#else
-                    index2 = Spaces.Replace(index2, " ");
-#endif
                 }
 
                 if (!h.TryGetValue(index2, out var num))

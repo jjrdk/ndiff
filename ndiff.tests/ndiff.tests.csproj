@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+        <TargetFramework>net9.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
 
@@ -14,8 +14,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" Condition="'$(TargetFramework)' != 'net8.0'" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" Condition="'$(TargetFramework)' == 'net8.0'" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     </ItemGroup>
 
     <ItemGroup>
